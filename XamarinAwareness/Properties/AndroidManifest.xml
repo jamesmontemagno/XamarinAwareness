@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.sample.xamarin.awareness" android:versionCode="1" android:versionName="1.0" android:installLocation="auto">
+	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="24" />
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
+	<application android:label="@string/ApplicationName" android:icon="@drawable/Icon" android:theme="@style/MyTheme">
+		<meta-data android:name="com.google.android.awareness.API_KEY" android:value="AIzaSyC3yk30BXCjINPsLycU8HyZ05JFI2CM5TU" />
+		<meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyC3yk30BXCjINPsLycU8HyZ05JFI2CM5TU" />
+		<meta-data android:name="com.google.android.nearby.messages.API_KEY" android:value="AIzaSyC3yk30BXCjINPsLycU8HyZ05JFI2CM5TU" />
+	</application>
+</manifest>
