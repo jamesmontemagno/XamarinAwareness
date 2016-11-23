@@ -10,6 +10,7 @@ using Android.Gms.Awareness;
 using Plugin.Permissions;
 using Plugin.Permissions.Abstractions;
 using Android.Gms.Awareness.State;
+using Android.Gms.Extensions;
 
 namespace XamarinAwareness
 {
@@ -23,7 +24,7 @@ namespace XamarinAwareness
         }
         int count = 1;
         GoogleApiClient client;
-        protected override void OnCreate(Bundle bundle)
+        protected async override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
 
@@ -89,11 +90,16 @@ namespace XamarinAwareness
               };
 
 
-            client = new GoogleApiClient.Builder(this)
+            client = await new GoogleApiClient.Builder(this)
                 .AddApi(Awareness.Api)
-                .Build();
+                .EnableAutoManage(this, (r) =>
+                {
+                })
+                .BuildAndConnectAsync((i) =>
+                {
 
-            client.Connect();
+                });
+            
 
             SupportActionBar.SetDisplayHomeAsUpEnabled(false);
             SupportActionBar.SetHomeButtonEnabled(false);
