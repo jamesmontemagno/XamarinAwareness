@@ -1,14 +1,12 @@
-﻿using System;
-using Android.App;
-using Android.Content;
-using Android.Runtime;
-using Android.Views;
+﻿using Android.App;
 using Android.Widget;
 using Android.OS;
-using Android.Gms.Common.Apis;
-using Android.Gms.Awareness;
 using Plugin.Permissions;
 using Plugin.Permissions.Abstractions;
+
+
+using Android.Gms.Common.Apis;
+using Android.Gms.Awareness;
 using Android.Gms.Awareness.State;
 using Android.Gms.Extensions;
 
@@ -36,53 +34,69 @@ namespace XamarinAwareness
 
             clickButton.Click += async (sender, args) =>
               {
-                  await CrossPermissions.Current.RequestPermissionsAsync(Permission.Location);
+                  var status = await CrossPermissions.Current.CheckPermissionStatusAsync(Permission.Location);
+                  if (status != PermissionStatus.Granted)
+                  {
+                      var results = await CrossPermissions.Current.RequestPermissionsAsync(Permission.Location);
+                      if (results[Permission.Location] != PermissionStatus.Granted)
+                          return; //handle rejection
+                  }
               };
 
-            var navigationButton = FindViewById<Button>(Resource.Id.button_awareness);
+            var button = FindViewById<Button>(Resource.Id.button_awareness);
+            
 
-            navigationButton.Click += async (sender, args) =>
+            button.Click += async (s, o) =>
               {
-                  var result = await Awareness.SnapshotApi.GetDetectedActivityAsync(client);
-                  var info = "Probably: ";
-                  if (result.Status.IsSuccess)
-                  {
-                      var ar = result.ActivityRecognitionResult;
-                      var probablyActivity = ar.MostProbableActivity;
+                  
+                  var result = await Awareness.SnapshotApi
+                                    .GetDetectedActivityAsync(client);
 
-                      info += probablyActivity.ToString();
-                  }
-                  else
+                  var info = string.Empty;
+
+                  if (result?.Status?.IsSuccess ?? false)
                   {
-                      info += "cant' get probably doing.";
+                      var probablyActivity = result?.ActivityRecognitionResult
+                                                   ?.MostProbableActivity;
+
+                      info = probablyActivity?.ToString() ?? "No activity"; 
                   }
 
+                  text.Text = info;
                   var headPhones = await Awareness.SnapshotApi.GetHeadphoneStateAsync(client);
 
-                  if (headPhones.Status.IsSuccess)
+                  if (headPhones?.Status?.IsSuccess ?? false)
                       info += "\n Headphones:" + (headPhones.HeadphoneState.State == HeadphoneState.PluggedIn ? "plugged in" : "not plugged in");
                   else
                       info += "\n Can't Get Headphones";
 
+                  text.Text = info;
                   var location = await Awareness.SnapshotApi.GetLocationAsync(client);
 
-                  if (location.Status.IsSuccess)
+                  if (location?.Status?.IsSuccess ?? false)
                       info += "\n Location:" + location.Location.Latitude + "," + location.Location.Longitude;
                   else
                       info += "\n Can't Get Location";
 
+                  text.Text = info;
                   var places = await Awareness.SnapshotApi.GetPlacesAsync(client);
-                  if (places.Status.IsSuccess)
+                  if (places?.Status?.IsSuccess ?? false && places.PlaceLikelihoods != null)
                   {
                       foreach (var place in places.PlaceLikelihoods)
-                          info += "\n places:" + place.Place.NameFormatted.ToString() + " likelihood:" + place.Likelihood;
+                          info += "\n places:" + place?.Place?.NameFormatted.ToString() + " likelihood:" + place.Likelihood;
                   }
                   else
                       info += "\n Can't Get places";
 
+                  text.Text = info;
                   var weather = await Awareness.SnapshotApi.GetWeatherAsync(client);
-                  if (weather.Status.IsSuccess)
-                      info += "\n weather:" + weather.Weather.ToString();
+                  if (weather?.Status?.IsSuccess ?? false && weather.Weather != null)
+                  {
+                      info += $"\n Temperature: {weather.Weather.GetTemperature(1)} ";
+                      info += $"\n Humidity: {weather.Weather.Humidity}%";
+                      info += $"\n Feels Like: {weather.Weather.GetFeelsLikeTemperature(1)} ";
+                      info += $"\n Dew Point: {weather.Weather.GetDewPoint(1)} ";
+                  }
                   else
                       info += "\n Can't Get weather";
 
@@ -92,12 +106,12 @@ namespace XamarinAwareness
 
             client = await new GoogleApiClient.Builder(this)
                 .AddApi(Awareness.Api)
-                .EnableAutoManage(this, (r) =>
+                .AddConnectionCallbacks(() =>
                 {
+                    text.Text = "Connected";
                 })
                 .BuildAndConnectAsync((i) =>
                 {
-
                 });
             
 
