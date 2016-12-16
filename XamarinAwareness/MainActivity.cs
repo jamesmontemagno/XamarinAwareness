@@ -48,7 +48,11 @@ namespace XamarinAwareness
 
             button.Click += async (s, o) =>
               {
-                  
+                  if(client == null)
+                  {
+                   Toast.MakeText (this, "Make sure you have registred correctly with Google Play API console.", ToastLength.Long).Show();
+                   return;
+                  }
                   var result = await Awareness.SnapshotApi
                                     .GetDetectedActivityAsync(client);
 
